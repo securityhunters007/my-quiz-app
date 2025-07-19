@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library and Information Science Quiz</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .options-container label {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .options-container label:hover {
+            background-color: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        .options-container input[type="radio"] {
+            margin-top: 5px;
+            margin-right: 15px;
+            transform: scale(1.2);
+            accent-color: #4299e1; /* Custom color for radio button */
+        }
+        .options-container input[type="radio"]:checked + span {
+            font-weight: 700;
+            color: #2b6cb0;
+        }
+        .options-container span {
+            flex-grow: 1;
+            font-size: 1rem;
+            color: #2d3748;
+            line-height: 1.5;
+        }
+        /* Styles for correct/incorrect answers */
+        .options-container label.correct {
+            background-color: #c6f6d5; /* Light green */
+            border: 2px solid #38a169; /* Green border */
+        }
+        .options-container label.incorrect {
+            background-color: #fed7d7; /* Light red */
+            border: 2px solid #e53e3e; /* Red border */
+        }
+        .options-container label.correct input[type="radio"]:checked + span,
+        .options-container label.incorrect input[type="radio"]:checked + span {
+            color: #1a202c; /* Ensure text is readable */
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .nav-button {
+            background-color: #4299e1;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .nav-button:hover {
+            background-color: #2b6cb0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .nav-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .quiz-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+        .quiz-header p {
+            font-size: 1.1rem;
+            color: #4a5568;
+        }
+        .question-counter {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+        .timer-container {
+            text-align: center;
+            font-size: 1.8rem; /* Larger font */
+            font-weight: 800; /* Bolder font */
+            color: #ffffff; /* White text */
+            margin-bottom: 20px;
+            padding: 15px; /* More padding */
+            background: linear-gradient(135deg, #ef4444, #dc2626); /* Red gradient */
+            border-radius: 15px; /* More rounded corners */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .timer-icon {
+            /* Example: simple SVG clock icon */
+            width: 30px;
+            height: 30px;
+            fill: currentColor;
+        }
+        .final-message {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #38a169;
+            padding: 20px;
+            background-color: #e6fffa;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .score-details {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #2d3748;
+        }
+        .score-details p {
+            margin-bottom: 5px;
+        }
+        .score-details .correct-count {
+            color: #38a169;
+            font-weight: 700;
+        }
+        .score-details .incorrect-count {
+            color: #e53e3e;
+            font-weight: 700;
+        }
+        .check-answer-button {
+            background-color: #f6ad55; /* Orange for check answer */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            width: fit-content;
+            align-self: center; /* Center the button */
+        }
+        .check-answer-button:hover {
+            background-color: #dd6b20;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .check-answer-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .feedback-message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .feedback-message.correct-feedback {
+            color: #38a169; /* Green */
+        }
+        .feedback-message.incorrect-feedback {
+            color: #e53e3e; /* Red */
+        }
+        /* New styles for review summary */
+        .review-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f7fafc;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .review-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out;
+        }
+        .review-item:hover {
+            transform: translateY(-3px);
+        }
+        .review-item.bg-green-100 {
+            background-color: #d1fae5; /* Lighter green for correct review */
+            border-color: #34d399;
+        }
+        .review-item.bg-red-100 {
+            background-color: #fee2e2; /* Lighter red for incorrect review */
+            border-color: #ef4444;
+        }
+        .review-item p {
+            margin-bottom: 8px;
+        }
+        .review-item .font-semibold {
+            font-weight: 700;
+            color: #2d3748;
+        }
+        .review-item .text-green-700 {
+            color: #10b981;
+        }
+        .review-item .text-red-700 {
+            color: #ef4444;
+        }
+        .review-item .text-gray-600 {
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1>Library and Information Science Quiz</h1>
+            <p>This paper consists of fifty (50) multiple-choice type questions. Each question carries two (2) marks.</p>
+            <p class="text-sm text-red-600 mt-2">Note: This quiz does not include answer checking or scoring as the answers are not available in the original document. Please provide the correct answers in the JavaScript array to enable this feature.</p>
+        </div>
+
+        <div class="timer-container" id="timer">
+            <svg class="timer-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.9 13H11V7h1.9v8z"/>
+            </svg>
+            Time Remaining: 02:00:00
+        </div>
+
+        <div class="question-counter" id="questionCounter"></div>
+
+        <div id="quiz" class="quiz-content">
+            <!-- Question and options will be loaded here by JavaScript -->
+        </div>
+
+        <button id="checkAnswerBtn" class="check-answer-button hidden">Check Answer</button>
+        <div id="feedbackMessage" class="feedback-message hidden"></div>
+
+        <div class="navigation-buttons">
+            <button id="prevBtn" class="nav-button" disabled>Previous Question</button>
+            <button id="nextBtn" class="nav-button">Next Question</button>
+            <button id="submitBtn" class="nav-button hidden">Finish Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // Array to store quiz questions and options (in Hindi)
+        // IMPORTANT: Add 'correctAnswerIndex' to each question object (0-indexed)
+        // For example: { question: "...", options: ["A", "B", "C", "D"], correctAnswerIndex: 2 }
+        // The values below are placeholders; please update them with actual correct answers.
+        const quizQuestions = [
+            {
+                question: "'व्हेयर इज द विज्डम, वी लोस्ट इन नोलेज ...' यह कथन किसका है ?",
+                options: ["जोहन किट्स", "एम.पी. कारटर", "टी.एस. इलियट", "मार्शल मेक्ल्हन्"],
+                correctAnswerIndex: 2 // Placeholder: Change this to the actual correct index (0, 1, 2, or 3)
+            },
+            {
+                question: "एन्ट्रोपी किसके मापन के लिए है ?",
+                options: ["सूचना की प्रासंगिकता की मात्रा", "सूचना की अप्रासंगिकता की मात्रा", " सूचना की अनिश्चितता की मात्रा", "सूचना की निश्चितता की मात्रा"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "कोनपोलिस (भारत) की स्थापना कौन से वर्ष में हुई थी ?",
+                options: ["1985", "1986", "1987", "1988"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "भारत में ग्रंथालयों के विकास के लिए सबसे पहला प्रयास किसने किया ?",
+                options: ["एस.आर. रंगनाथन", "एस. राधाकृष्णन", "सयाजीराव गायकवाड I", "सयाजीराव गायकवाड II"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "निम्न में से कौन सी इ-बुक की विषयवस्तु प्राप्त करने के लिए इन्टरनेट कनेक्शन की जरूरत नहीं है ?",
+                options: ["वेब बुक", "पाम् बुक", "इलेक्ट्रॉनिक इन्क इ-बुक", "डिजीटल बुक"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "निम्न में से एमराल्ड फुल टेक्स्ट डेटाबेस कहाँ से प्रकाशित होता है ?",
+                options: ["यू एस ए", "जर्मनी", "फ्रान्स", "यू के"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "निम्न में से किसने संदर्भ सेवा का 'कन्सर्वेटीव, मोडरेट एन्ड लिबरल' सिद्धांत दिया है ?",
+                options: ["विलियम ए. कात्झ", "एस. आर. रंगनाथन", "जेम्स आई. वायर", "आर. एमरी"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "निम्न में से भारत में ईनीस (INIS) का निवेश केन्द्र कौन सा है ?",
+                options: ["डी.आर.डी.ओ.", "डी.एस.आई.आर.", "टी.एफ.आई.आर.", "बार्क"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "डीडीसी के कौन से संस्करण में फेज़ रीलेशन की सुविधा शुरू हुई ?",
+                options: ["14th संस्करण", "2nd संस्करण", "7th संस्करण", "11th संस्करण"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "निम्न में से किसके लिए आरडीए का प्रयोग किया गया है ?",
+                options: ["रिसोर्स डीस्क्रीप्शन एजेन्सी", "रेफरन्स डीस्क्रीप्शन एन्ड एक्सेस", "रेफरन्स डीस्क्रीप्शन एजेन्सी", "रिसोर्स डीस्क्रीप्शन एन्ड एक्सेस"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "कोस्ट बेनीफीट एनालीसिस का मतलब क्या है ?",
+                options: ["मुद्रा मूल्य", "मूल्य आधारित कार्य-निर्वहन मूल्यांकन", "इकाई मूल्य ढूँढ़ना", "निवेश आधारित कार्य-निर्वहन मूल्यांकन"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "भारत की कौन सी राष्ट्रीय एजेन्सी आई.एस.बी.एन. निर्धारित करती है ?",
+                options: ["राजा राममोहन रॉय नेशनल एज्युकेशन रिसोर्स सेन्टर", "दिल्ली पब्लिक लाईब्रेरी", "फेडरेशन ऑफ पब्लीशर्स इन इन्डिया", "नेशनल लाईब्रेरी ऑफ इन्डिया"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "'सायबरस्पेस' शब्द का उपयोग सबसे पहले किसने किया ?",
+                options: ["एन्डु पोलोक", "विलियम गिब्सन", "जोहन पोस्टल", "जोय फ्लोवर"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्न में किसके लिए आर.एफ. आई.डी. टेक्नोलोजी का उपयोग होता है ?",
+                options: ["संप्राप्ति", "क्रमिक नियंत्रण", "परिग्रहण", "ओपेक"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "निम्न में से बुलिअन ओपरेटर 'ऐन्ड' ('AND') किससे संबंधित है ?",
+                options: ["प्रोडक्टिव", "एडीटीव", "लोजिकल डिफरन्स", "उपरोक्त में से कोई नहीं"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "डिस्क्स् को ट्रैक्स और सेक्टर्स में डालने की प्रक्रिया को क्या कहते हैं ?",
+                options: ["बूटींग", "फोर्मेटिंग", "लेबलिंग", "उपरोक्त सभी"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्न में से रिसर्च-डिजाइन क्या है ?",
+                options: ["गाईड पोस्ट की श्रेणी", "सेम्पलिंग की श्रेणी", "काल्पनिक विधान", "मतभेदों का नियंत्रक"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "प्रश्नावली में उम्र, आय और जाति पर पूछे गये प्रश्न निम्न में से कौन से उदाहरण हैं ?",
+                options: ["आधारित चल", "हस्तक्षेपीय चल", "स्वतंत्र चल", "क्रियाकौशल चल"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "डब्लीन कोर मेटाडेटा में कितने तत्त्व हैं ?",
+                options: ["10 तत्त्व", "15 तत्त्व", "14 तत्त्व", "18 तत्त्व"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्न में से कौन से प्रलेख का शीर्षक 'लाईब्रेरीज एज गेटवे टु नोलेज' है ?",
+                options: ["नेशनल इन्फर्मेशन पोलिसी, 1986", "आई टी एक्ट, 2000", "नेशनल नोलेज कमीशन, 2007", "उपरोक्त में से कोई नहीं"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : इनडेस्ट ने सदस्य पुस्तकालयों के लिए 'जे गेट' को उपभोक्ता के अनुसार 'ई जर्नल्स्' को सबस्क्राइब करने के लिए बनाया । तर्क (R) : सदस्य पुस्तकालयों द्वारा खोजने, स्रोतों एवम् हिस्सेदारी के लिए 'जे गेट' उपभोक्ताओं को सामूहिक मंच प्रदान करता है।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं, परन्तु (R) सही स्पष्टीकरण है ।", "दोनों (A) एवम् (R) सत्य हैं, परन्तु (R) सही स्पष्टीकरण नहीं है।", "(A) सत्य है, परन्तु (R) असत्य है ।", "(A) असत्य है, परन्तु (R) सत्य है ।"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : एच.टी.एम.एल. की तरह एक्स.एम.एल. एक मेटा लेंगवैज है जो कि विस्तारणीय अंक्षको को समाविष्ट करने में सक्षम है । तर्क (R) : एक्स.एम.एल. एक ऐसे नए विशेष मार्क अप का विकास एवम् प्रसार करता है जो कि नेटवर्क सूचना को क्रियान्वित करने में मदद करता है ।",
+                options: ["(A) असत्य है, परन्तु (R) सत्य है।", "दोनों (A) एवम् (R) सत्य हैं, परन्तु (R) सही स्पष्टीकरण नहीं है ।", "(A) सत्य है, परन्तु (R) असत्य है।", "दोनों (A) एवम् (R) सत्य हैं।"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : इलेक्ट्रानिक स्रोत जैसे इन्टरनेट, विशेष तौर पर 'वेब' का मापन कठिन कार्य है । तर्क (R) : वेब प्रकाशन एक ऐसा माध्यम है जो सम्पादकीय प्रक्रिया के लिये अपर्याप्त माना जाता है।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं, परन्तु (R) सही स्पष्टीकरण है ।", "दोनों (A) एवम् (R) सत्य हैं, परन्तु (R) सही स्पष्टीकरण नहीं है।", "(A) सत्य है, परन्तु (R) असत्य है ।", "(A) असत्य है, परन्तु (R) सत्य है ।"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : अनुक्रमीकरण भाषा एक कृत्रिम भाषा है क्योंकि यह नियंत्रित शब्दकोश का प्रयोग करती है। तर्क (R) : नियत्रित शब्दकोश शब्दों के बीच में विभिन्न प्रकार के सम्बन्ध स्थापित करता है ।",
+                options: ["दोनों (A) एवम् (R) असत्य हैं ।", "दोनों (A) एवम् (R) सत्य हैं।", "(A) सत्य है, परन्तु (R) असत्य है ।", "(A) असत्य है, परन्तु (R) सत्य है।"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : वृद्ध संग्रह में पुनःस्मरण (रिकॉल) को सही प्रकार से मापा जा सकता है । तर्क (R) : किसी प्रश्न 'क्वारी' के अधिकतम पुनः स्मरण (रिकॉल) के उपयुक्त आंकलन के लिए समस्त संग्रह का ज्ञान होना आवश्यक है।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं।", "दोनों (A) एवम् (R) सत्य हैं, परन्तु (R) सही स्पष्टीकरण नहीं है ।", "(A) सत्य है, परन्तु (R) असत्य है ।", "(A) असत्य है, परन्तु (R) सत्य है।"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : तत्कालीन डिजिटल परिवेश में आई.पी. आर. एक केन्द्र बिन्दु बन गया है। तर्क (R) : आई.पी. (इन्टेलेक्चुअल प्रोपर्टी) का बहुस्तरीय दुरूपयोग होना ।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं।", "दोनों (A) एवम् (R) असत्य हैं ।", "(A) सत्य है, परन्तु (R) असत्य है।", "(A) असत्य है, परन्तु (R) सत्य है ।"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : भारतीय पुस्तकालयों में पुस्तकालय स्वचालन (लाईब्रेरी आटोमेशन) की गति बहुत कम है। तर्क (R) : इस स्थिति के लिए विश्वविद्यालय अनुदान आयोग का समर्थन का अभाव है ।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं ।", "दोनों (A) एवम् (R) असत्य हैं ।", "(A) सत्य है, परन्तु (R) असत्य है।", "(A) असत्य है, परन्तु (R) सत्य है।"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : भारत में इन्सटिट्यूशनल रिपोजिटोरिस् (आई.आर.) के विकास की गति बहुत कम है। तर्क (R) : ओपन स्रोस सोफ्टवेयर का उपलब्ध ना होना एवम् ग्रंथालय व्यावसायिकों की कम रुचि से सम्बन्ध रखता है।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं ।", "दोनों (A) एवम् (R) असत्य हैं ।", "(A) सत्य है, परन्तु (R) आंशिक सत्य है।", "(A) असत्य है, परन्तु (R) सत्य है।"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : उपभोक्ताओं के लिए सबजैक्ट गेटवेज 'वैक्यूम क्लिनर' की तरह कार्य करते हैं जैसे कि गूगल, इन्फोसिक, अल्टाविस्टा, इत्यादि । तर्क (R) : हस्त्यक निर्माणित रिकार्ड जैसे कि रिच रिसोर्स डिसक्रिप्शन (आर.एस.एस.) की तरह सबजैक्ट गेटवेज में सुसंगत सूचना समाविष्ट होती है ।",
+                options: ["दोनों (A) एवम् (R) सत्य हैं ।", "दोनों (A) एवम् (R) सत्य है, परन्तु (R) सही स्पष्टीकरण नहीं है।", "(A) सत्य है, परन्तु (R) असत्य है।", "(A) असत्य है, परन्तु (R) सत्य है ।"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "अभिकथन (A) : पुस्तकालय के नित्यकर्म कार्यों में व्यावसायिकों को अर्ध-व्यावसायिक वर्ग सहायता करते है। तर्क (R) : क्योंकि अर्ध-व्यावसायिक वर्ग अनुभव से कौशल प्राप्त करते हैं ।",
+                options: ["(A) असत्य है, परन्तु (R) सत्य है।", "(A) सत्य है, परन्तु (R) असत्य है ।", "दोनों (A) एवम् (R) असत्य हैं ।", "दोनों (A) एवम् (R) सत्य हैं।"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "निम्न राज्यों में पब्लिक लाईब्रेरी एक्ट पास हो गया है। उसका कालानुक्रम बताइए : (i) उत्तरांचल (उत्तराखण्ड) (ii) उड़ीसा (iii) गुजरात (iv) हरियाणा कोड :",
+                options: ["(i) (ii) (iii) (iv)", "(iv) (ii) (i) (iii)", "(ii) (iii) (iv) (i)", "(iii) (ii) (i) (iv)"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "कम्प्यूटर प्रक्रिया के इतिहास के साथ संलग्न निम्न व्यक्तियों को कालानुक्रम अनुसार रखिए : (i) जे प्रेसपर एकार्ट (ii) जोहन डब्ल्यू. माउच्ली (iii) ऑगस्ट अडा (iv) चार्ल्स बबेज कोड :",
+                options: ["(iii) (ii) (i) (iv)", "(ii) (i) (iii) (iv)", "(i) (iv) (iii) (ii)", "(iv) (iii) (ii) (i)"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "पब्लिक लाईब्रेरी मूवमेन्ट की निम्नलिखित घटनाओं को कलानुक्रम अनुसार रखिए : (i) प्रेस एन्ड रजिस्ट्रेशन ऑफ बुक एक्ट लागू हुआ । (ii) पंजाब लाईब्रेरी, लाहौर की स्थापना । (iii) फैजी कमेटी की रचना । (iv) इम्पिरियल लाईब्रेरी (कोलकाता) को भारत का राष्ट्रीय ग्रन्थालय घोषित किया । कोड :",
+                options: ["(i) (iii) (iv) (ii)", "(i) (ii) (iii) (iv)", "(ii) (iii) (iv) (i)", "(iv) (i) (iii) (ii)"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "ओ.एस.आई. (OSI) मोडेल के निम्नलिखित स्तरों को उनके कार्यसारणी के क्रम में रखिए: (i) नेटवर्क स्तर (ii) भौतिक स्तर (iii) परिवहन स्तर (iv) डेटा लिंक स्तर कोड :",
+                options: ["(iii) (iv) (ii) (i)", "(iv) (ii) (i) (iii)", "(ii) (iv) (i) (iii)", "(i) (ii) (iii) (iv)"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "चक्राकार वैज्ञानिक पद्धति के बिन्दुओं को उसके तार्किक क्रमानुसार रखिए : (i) एसेन्डेन्ट (ii) नादिर (iii) जेनीथ (iv) डिसेन्डेन्ट कोड :",
+                options: ["(iv) (i) (iii) (ii)", "(i) (iii) (iv) (ii)", "(iii) (ii) (i) (iv)", "(ii) (i) (iii) (iv)"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "निम्नलिखित ग्रन्थों को इसके प्रकाशन वर्ष के अनुसार रखिए : (i) क्लासिफाईड केटलॉग कोड (ii) प्रोलिगेमीना टू लाईब्रेरी क्लासिफिकेशन (iii) फाईव लोज ऑफ लाईब्रेरी सायन्स (iv) कोलन क्लासिफिकेशन कोड :",
+                options: ["(i) (iv) (iii) (ii)", "(iii) (ii) (iv) (i)", "(iii) (iv) (i) (ii)", "(iv) (i) (ii) (iii)"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्नलिखित ग्रंथ सूचियों को इसके उद्भव वर्ष के अनुसार रखिए: (i) इन्डिअन नेशनल बिब्लीओग्राफी (ii) क्युम्युलेटिव बुक इंडेक्स (iii) बुक इन प्रिन्ट (iv) ब्रिटिश नेशनल बिब्लीओग्राफी कोड :",
+                options: ["(iii) (iv) (i) (ii)", "(ii) (iii) (iv) (i)", "(i) (ii) (iii) (iv)", "(iv) (ii) (i) (iii)"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्नलिखित वर्गीकरण की पद्धतियों को इसके उद्भव वर्ष के अनुसार रखिए: (i) कोलन क्लासिफिकेशन (ii) एक्सपान्सिव क्लासिफिकेशन (iii) यूनिवर्सल डेसीमल क्लासिफिकेशन (iv) ड्यूवी डेसीमल क्लासिफिकेशन कोड :",
+                options: ["(ii) (iii) (iv) (i)", "(iii) (iv) (i) (ii)", "(iv) (ii) (iii) (i)", "(i) (ii) (iv) (iii)"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "निम्नलिखित नियमों और सूत्रों को डॉ. रंगनाथन के दिये हुए स्तर के अनुसार लिखिए : (i) प्रिन्सीपल ऑफ केटलोलिंग (ii) जनरल नोर्मेटीव प्रिन्सीपल्स (iii) लोज ऑफ लाईब्रेरी सायन्स (iv) केनन ऑफ केटलोगिंग कोड :",
+                options: ["(i) (iv) (iii) (ii)", "(ii) (iii) (iv) (i)", "(ii) (i) (iv) (iii)", "(i) (iv) (ii) (iii)"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्नलिखित एशोसिएशन को इसके निर्माण के वर्ष के अनुसार रखिए : (i) ASLIB (एसलिब) (ii) LA (ला) (iii) ALA (एएलए) (iv) SLA (एसएलए) कोड :",
+                options: ["(iii) (ii) (iv) (i)", "(ii) (iv) (i) (iii)", "(iii) (i) (iv) (ii)", "(iv) (i) (iii) (ii)"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "निम्नलिखित का मिलान करें : सूची-I (a) लिटल सायन्स, बिग सायन्स (b) डॉक्युमेन्टेशन (c) द थर्ड वेव (d) द इन्फर्मेशन सोसायटी सूची-II (i) एस.सी. ब्रेडफोल्ड (ii) विलियम मार्टीन (iii) एरिक जे.डे. सोला प्राईस (iv) एल्वीन टोफलर कोड :",
+                options: ["(A) (i) (ii) (iii) (iv)", "(B) (iii) (i) (iv) (ii)", "(C) (iv) (iii) (ii) (i)", "(D) (ii) (i) (iv) (iii)"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "निम्नलिखित का मिलान करें : सूची-1 (a) कीवर्ड इंडेक्सिग (b) साईटेशन इंडेक्सिग (c) युनिटर्म इंडेक्सिग (d) स्लीक इंडेक्सिग सूची-II (i) जे. आर. शार्प (ii) एच.पी. ल्हून (iii) ई. गार्फिल्ड (iv) एम. टोब् कोड :",
+                options: ["(A) (ii) (iii) (iv) (i)", "(B) (iii) (iv) (i) (ii)", "(C) (iv) (i) (iii) (ii)", "(D) (i) (iii) (ii) (iv)"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "निम्नलिखित का मिलान करें : सूची-I (a) वेब नेवीगेशन एलीमेन्ट (b) शीफ्ट + टेब (c) ए.एन.एस.आई. स्टान्डर्ड (d) टेलनेट सूची-II (i) टेलीकम्यूनीकेशन (ii) एस.क्यू.एल. (iii) हायपर लिंक (iv) पहली लिंक पसंद करो कोड :",
+                options: ["(A) (i) (ii) (iii) (iv)", "(B) (iv) (iii) (ii) (i)", "(C) (iii) (iv) (ii) (i)", "(D) (ii) (iii) (i) (iv)"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "निम्नलिखित का मिलान करें : सूची-1 (a) मैक्फी (b) डिरेक्टरी (c) निजी वेब पेजिज़ (d) एमेज़ोन.कॉम सूची-II (i) डी.ओ.ए.जे. (ii) एन्टीवायरस (iii) इन्टरनेट के विक्रेता (iv) ब्लोग्स कोड :",
+                options: ["(A) (ii) (i) (iv) (iii)", "(B) (i) (iv) (iii) (ii)", "(C) (ii) (iii) (iv) (i)", "(D) (iv) (iii) (ii) (i)"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "निम्नलिखित का मिलान करें : सूची-I (a) ज्ञान के सिद्धांत (b) आई.एस.: 1553-1960 (c) संसाधन हिस्सेदारी (d) टी.ई.आई. सूची-II (i) फारमिंग्टन प्लान (ii) मेटाडेटा फोर्मेट (iii) ग्रंथालय भवन (iv) एपीस्टोमोलोजी कोड :",
+                options: ["(A) (i) (iii) (ii) (iv)", "(B) (ii) (iii) (i) (iv)", "(C) (iv) (iii) (i) (ii)", "(D) (iii) (i) (ii) (iv)"],
+                correctAnswerIndex: 2 // Placeholder
+            },
+            {
+                question: "रोलांड मुनरो उत्तरदायित्व को किस प्रकार वर्णित करते हैं ?",
+                options: ["वर्गीकृत प्रलेखनीय आर्टिफेक्ट", "औपचारिक आर्टिफेक्ट मात्र", "अप्रकाशित और प्रकाशित प्रलेख", "अनौपचारिक, औपचारिक और प्रलेखनीय रिकार्ड"],
+                correctAnswerIndex: 3 // Placeholder
+            },
+            {
+                question: "'रिकार्ड कीपिंग' निम्नलिखित में से किससे सम्बन्धित है ?",
+                options: ["कम्प्यूटर प्रोग्रामर्ज", "पुरातत्त्ववादी", "चार्टड अकाउंटेंट", "दफ्तर मैनेजर"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "मुनरो ने कारोबार में लेखा करने के किस अभिन्न तत्त्व की पहचान की है ?",
+                options: ["रिकार्ड और कोड", "प्रलेखनीय पुरातत्त्व", "सामग्री और युक्ति", "विधि विनियम"],
+                correctAnswerIndex: 0 // Placeholder
+            },
+            {
+                question: "सामान्य प्रयोग में उत्तरदायित्व का क्या अर्थ है ?",
+                options: ["वह जिसे अनौपचारिक रूप से किया जाता है।", "वह जिसे प्राप्त किया जाए ।", "वह जिसे सतत किया जाए ।", "उपरोक्त सभी"],
+                correctAnswerIndex: 1 // Placeholder
+            },
+            {
+                question: "उत्तरदायित्व जिसका प्रतिनिधित्व आर्किफेक्ट में सम्मिलित है",
+                options: ["प्रक्रिया, रिकार्ड, लोग", "सिद्धान्त, व्यवहार, रिकार्ड", "सिद्धान्त, अभ्यास, लोग", "लोग, रिकार्ड, लेखा"],
+                correctAnswerIndex: 3 // Placeholder
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        const userSelections = new Array(quizQuestions.length).fill(null);
+        // userCorrectAnswers now stores true/false/null (null if not checked, true if correct, false if incorrect)
+        const userCorrectAnswersStatus = new Array(quizQuestions.length).fill(null); 
+
+        const quizDiv = document.getElementById('quiz');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const questionCounter = document.getElementById('questionCounter');
+        const timerDisplay = document.getElementById('timer');
+
+        const totalTimeInSeconds = 2 * 60 * 60; // 2 hours in seconds
+        let timeLeft = totalTimeInSeconds;
+        let timerInterval;
+
+        // Function to format time
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = seconds % 60;
+
+            const pad = (num) => String(num).padStart(2, '0');
+            return `${pad(hours)}:${pad(minutes)}:${pad(remainingSeconds)}`;
+        }
+
+        // Function to update the timer
+        function updateTimer() {
+            timerDisplay.innerHTML = `
+                <svg class="timer-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.9 13H11V7h1.9v8z"/>
+                </svg>
+                Time Remaining: ${formatTime(timeLeft)}
+            `;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finishQuiz(true); // Automatically submit the quiz when time runs out
+            } else {
+                timeLeft--;
+            }
+        }
+
+        // Function to load a question
+        function loadQuestion() {
+            const questionData = quizQuestions[currentQuestionIndex];
+            quizDiv.innerHTML = `
+                <div class="question-text">
+                    ${currentQuestionIndex + 1}. ${questionData.question}
+                </div>
+                <div class="options-container">
+                    ${questionData.options.map((option, index) => `
+                        <label id="option-${index}">
+                            <input type="radio" name="question${currentQuestionIndex}" value="${index}" ${userSelections[currentQuestionIndex] === index ? 'checked' : ''}>
+                            <span>${String.fromCharCode(65 + index)}. ${option}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            updateNavigationButtons();
+            updateQuestionCounter();
+            feedbackMessage.classList.add('hidden'); // Hide feedback on new question load
+            feedbackMessage.textContent = '';
+            checkAnswerBtn.disabled = userSelections[currentQuestionIndex] === null; // Disable if no option selected
+
+            // Add event listeners to radio buttons to save selection
+            document.querySelectorAll(`input[name="question${currentQuestionIndex}"]`).forEach(radio => {
+                radio.addEventListener('change', (event) => {
+                    userSelections[currentQuestionIndex] = parseInt(event.target.value);
+                    checkAnswerBtn.disabled = false; // Enable check button once an option is selected
+                    // Clear previous feedback and styling when selection changes
+                    feedbackMessage.classList.add('hidden');
+                    feedbackMessage.textContent = '';
+                    document.querySelectorAll('.options-container label').forEach(label => {
+                        label.classList.remove('correct', 'incorrect');
+                    });
+                });
+            });
+
+            // If an answer was already checked for this question, display feedback and disable options
+            if (userCorrectAnswersStatus[currentQuestionIndex] !== null) { 
+                displayAnswerFeedback(userSelections[currentQuestionIndex], quizQuestions[currentQuestionIndex].correctAnswerIndex);
+                disableOptions();
+                checkAnswerBtn.classList.add('hidden'); // Hide check button if already checked
+            } else {
+                checkAnswerBtn.classList.remove('hidden'); // Show check button if not checked
+            }
+        }
+
+        // Function to disable all radio options for the current question
+        function disableOptions() {
+            document.querySelectorAll(`input[name="question${currentQuestionIndex}"]`).forEach(radio => {
+                radio.disabled = true;
+            });
+        }
+
+        // Function to display correct/incorrect feedback
+        function displayAnswerFeedback(selectedOptionIndex, correctOptionIndex) {
+            const optionsLabels = document.querySelectorAll('.options-container label');
+            
+            // Remove previous feedback classes
+            optionsLabels.forEach(label => {
+                label.classList.remove('correct', 'incorrect');
+            });
+
+            if (selectedOptionIndex === correctOptionIndex) {
+                document.getElementById(`option-${selectedOptionIndex}`).classList.add('correct');
+                feedbackMessage.textContent = 'Correct!';
+                feedbackMessage.classList.remove('hidden', 'incorrect-feedback');
+                feedbackMessage.classList.add('correct-feedback');
+            } else {
+                document.getElementById(`option-${selectedOptionIndex}`).classList.add('incorrect');
+                // Only highlight correct answer if it's different from selected
+                if (correctOptionIndex !== undefined && correctOptionIndex !== null) {
+                    document.getElementById(`option-${correctOptionIndex}`).classList.add('correct');
+                }
+                feedbackMessage.textContent = 'Incorrect. The correct answer is ' + String.fromCharCode(65 + correctOptionIndex) + '.';
+                feedbackMessage.classList.remove('hidden', 'correct-feedback');
+                feedbackMessage.classList.add('incorrect-feedback');
+            }
+        }
+
+        // Function to update navigation button states
+        function updateNavigationButtons() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.disabled = currentQuestionIndex === quizQuestions.length - 1;
+
+            if (currentQuestionIndex === quizQuestions.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        // Function to update question counter
+        function updateQuestionCounter() {
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1} / ${quizQuestions.length}`;
+        }
+
+        // Function to finish the quiz and display results/review button
+        function finishQuiz(timeUp = false) {
+            clearInterval(timerInterval); // Stop the timer
+
+            let correctCount = 0;
+            let incorrectCount = 0;
+            let unansweredCount = 0;
+
+            for (let i = 0; i < quizQuestions.length; i++) {
+                if (userSelections[i] !== null) {
+                    if (userSelections[i] === quizQuestions[i].correctAnswerIndex) {
+                        correctCount++;
+                    } else {
+                        incorrectCount++;
+                    }
+                } else {
+                    unansweredCount++;
+                }
+            }
+
+            quizDiv.innerHTML = `
+                <div class="final-message">
+                    Thank you for completing the quiz!
+                    ${timeUp ? "<br><br>Time's up! Your quiz has been automatically submitted." : ""}
+                    <div class="score-details mt-4">
+                        <p>Total Questions: ${quizQuestions.length}</p>
+                        <p class="correct-count">Correct Answers: ${correctCount}</p>
+                        <p class="incorrect-count">Incorrect Answers: ${incorrectCount}</p>
+                        <p>Unanswered Questions: ${unansweredCount}</p>
+                    </div>
+                    <button id="reviewAnswersBtn" class="nav-button mt-6">Review Answers</button>
+                </div>
+            `;
+            prevBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.add('hidden');
+            checkAnswerBtn.classList.add('hidden');
+            feedbackMessage.classList.add('hidden');
+            questionCounter.classList.add('hidden');
+            timerDisplay.classList.add('hidden'); // Hide the timer
+            document.querySelector('.quiz-header p').classList.add('hidden'); // Hide the note
+
+            // Add event listener for review button
+            document.getElementById('reviewAnswersBtn').addEventListener('click', displayReviewSummary);
+        }
+
+        // Function to display the review summary of all questions
+        function displayReviewSummary() {
+            let reviewHtml = '<div class="review-summary mt-8">';
+            for (let i = 0; i < quizQuestions.length; i++) {
+                const questionData = quizQuestions[i];
+                const userAnswerIndex = userSelections[i];
+                const correctAnswerIndex = questionData.correctAnswerIndex;
+                const isCorrect = (userAnswerIndex !== null && userAnswerIndex === correctAnswerIndex);
+
+                reviewHtml += `
+                    <div class="review-item mb-6 p-4 rounded-lg shadow-sm ${isCorrect ? 'bg-green-100 border border-green-400' : 'bg-red-100 border border-red-400'}">
+                        <p class="font-semibold text-lg mb-2">${i + 1}. ${questionData.question}</p>
+                        <p class="text-md mb-1">Your Answer: <span class="${userAnswerIndex === null ? 'text-gray-600' : (isCorrect ? 'text-green-700 font-bold' : 'text-red-700 font-bold')}">
+                            ${userAnswerIndex === null ? 'Not Answered' : String.fromCharCode(65 + userAnswerIndex) + '. ' + questionData.options[userAnswerIndex]}
+                        </span></p>
+                        ${!isCorrect || userAnswerIndex === null ? `<p class="text-md">Correct Answer: <span class="text-green-700 font-bold">${String.fromCharCode(65 + correctAnswerIndex) + '. ' + questionData.options[correctAnswerIndex]}</span></p>` : ''}
+                    </div>
+                `;
+            }
+            reviewHtml += '</div>'; // Close review-summary
+
+            quizDiv.innerHTML = reviewHtml;
+            quizDiv.innerHTML += '<button id="backToScoreBtn" class="nav-button mt-6">Back to Score Summary</button>';
+            document.getElementById('backToScoreBtn').addEventListener('click', () => {
+                finishQuiz(false); // Go back to score summary (not time-up)
+            });
+        }
+
+
+        // Event listener for Previous button
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        });
+
+        // Event listener for Next button
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        });
+
+        // Event listener for Check Answer button
+        checkAnswerBtn.addEventListener('click', () => {
+            const selectedOption = userSelections[currentQuestionIndex];
+            if (selectedOption !== null) {
+                const correctOption = quizQuestions[currentQuestionIndex].correctAnswerIndex;
+                displayAnswerFeedback(selectedOption, correctOption);
+                disableOptions(); // Disable options after checking
+                checkAnswerBtn.classList.add('hidden'); // Hide check button
+                userCorrectAnswersStatus[currentQuestionIndex] = (selectedOption === correctOption); // Store correctness status
+            } else {
+                feedbackMessage.textContent = 'Please select an option before checking.';
+                feedbackMessage.classList.remove('hidden', 'correct-feedback', 'incorrect-feedback');
+                feedbackMessage.style.color = '#f6ad55'; // Orange for warning
+            }
+        });
+
+        // Event listener for Submit button
+        submitBtn.addEventListener('click', () => {
+            finishQuiz();
+        });
+
+        // Initial load of the first question and start the timer when the page loads
+        window.onload = function() {
+            loadQuestion();
+            timerInterval = setInterval(updateTimer, 1000); // Update timer every second
+        };
+    </script>
+</body>
+</html>
